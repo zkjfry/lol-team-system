@@ -1,0 +1,23 @@
+# Java / Maven
+target/
+*.class
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Env
+.env
+*.env
+
+# IDE
+.idea/
+.vscode/
+
+# Scraper output
+output/
+
+# OS
+.DS_Store
+Thumbs.db

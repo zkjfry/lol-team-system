@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.lolteambackend.dao.AssignmentTeamHistoryDao">
+
+    <resultMap id="AssignmentTeamHistoryResultMap"
+               type="com.example.lolteambackend.entity.AssignmentTeamHistoryEntity">
+        <id property="id" column="id"/>
+        <result property="assignmentGroupId" column="assignment_group_id"/>
+        <result property="gameNo" column="game_no"/>
+        <result property="playerName" column="player_name"/>
+        <result property="team" column="team"/>
+    </resultMap>
+
+    <select id="selectRecentTeamHistory" resultMap="AssignmentTeamHistoryResultMap">
+        SELECT
+        id,
+        assignment_group_id,
+        game_no,
+        player_name,
+        team
+        FROM assignment_team_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND game_no IN (
+        SELECT game_no
+        FROM (
+        SELECT DISTINCT game_no
+        FROM assignment_team_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        ORDER BY game_no DESC
+        LIMIT #{recentGameCount}
+        ) recent_games
+        )
+        ORDER BY game_no DESC, id ASC
+    </select>
+
+    <insert id="insertTeamHistoryBatch">
+        INSERT INTO assignment_team_history (
+        assignment_group_id,
+        game_no,
+        player_name,
+        team,
+        created_at
+        )
+        VALUES
+        <foreach collection="players" item="p" separator=",">
+            (
+            #{assignmentGroupId},
+            #{gameNo},
+            #{p.playerName},
+            #{p.team},
+            CURRENT_TIMESTAMP
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteOldTeamHistory">
+        DELETE FROM assignment_team_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND game_no NOT IN (
+        SELECT game_no
+        FROM (
+        SELECT DISTINCT game_no
+        FROM assignment_team_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        ORDER BY game_no DESC
+        LIMIT #{keepGameCount}
+        ) recent_games
+        )
+    </delete>
+
+    <delete id="deleteExpiredTeamHistory">
+        DELETE FROM assignment_team_history
+        WHERE created_at &lt; CURRENT_TIMESTAMP - INTERVAL '1 day'
+    </delete>
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.lolteambackend.dao.PlayerLaneWeightDao">
+
+    <resultMap id="PlayerLaneWeightResultMap" type="com.example.lolteambackend.entity.PlayerLaneWeightEntity">
+        <id property="id" column="id"/>
+        <result property="assignmentGroupId" column="assignment_group_id"/>
+        <result property="playerName" column="player_name"/>
+        <result property="topWeight" column="top_weight"/>
+        <result property="jungleWeight" column="jungle_weight"/>
+        <result property="midWeight" column="mid_weight"/>
+        <result property="adcWeight" column="adc_weight"/>
+        <result property="supportWeight" column="support_weight"/>
+        <result property="lastLane1" column="last_lane_1"/>
+        <result property="lastLane2" column="last_lane_2"/>
+        <result property="lastLane3" column="last_lane_3"/>
+    </resultMap>
+
+    <select id="selectByGroupAndPlayer" resultMap="PlayerLaneWeightResultMap">
+        SELECT
+        id,
+        assignment_group_id,
+        player_name,
+        top_weight,
+        jungle_weight,
+        mid_weight,
+        adc_weight,
+        support_weight,
+        last_lane_1,
+        last_lane_2,
+        last_lane_3
+        FROM player_lane_weight
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND player_name = #{playerName}
+    </select>
+
+    <insert id="insertDefaultIfAbsent">
+        INSERT INTO player_lane_weight (
+        assignment_group_id,
+        player_name,
+        top_weight,
+        jungle_weight,
+        mid_weight,
+        adc_weight,
+        support_weight,
+        created_at,
+        updated_at
+        )
+        VALUES (
+        #{assignmentGroupId},
+        #{playerName},
+        20,
+        20,
+        20,
+        20,
+        20,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (assignment_group_id, player_name)
+        DO NOTHING
+    </insert>
+
+    <update id="updateAfterAssignedLane">
+        UPDATE player_lane_weight
+        SET
+        top_weight = #{topWeight},
+        jungle_weight = #{jungleWeight},
+        mid_weight = #{midWeight},
+        adc_weight = #{adcWeight},
+        support_weight = #{supportWeight},
+        last_lane_1 = #{lastLane1},
+        last_lane_2 = #{lastLane2},
+        last_lane_3 = #{lastLane3},
+        updated_at = CURRENT_TIMESTAMP
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND player_name = #{playerName}
+    </update>
+
+    <delete id="deleteExpiredWeights">
+        DELETE FROM player_lane_weight
+        WHERE updated_at &lt; CURRENT_TIMESTAMP - INTERVAL '1 day'
+    </delete>
+
+</mapper>

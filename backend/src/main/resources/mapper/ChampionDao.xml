@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.lolteambackend.dao.ChampionDao">
+
+    <resultMap id="ChampionPoolResultMap" type="com.example.lolteambackend.entity.ChampionPoolEntity">
+        <id property="championId" column="champion_id"/>
+        <result property="championNameCn" column="champion_name_cn"/>
+        <result property="damageType" column="damage_type"/>
+        <result property="isEnabled" column="is_enabled"/>
+        <result property="primaryLane" column="primary_lane"/>
+        <result property="secondaryLane" column="secondary_lane"/>
+        <result property="source" column="source"/>
+        <result property="region" column="region"/>
+        <result property="tier" column="tier"/>
+        <result property="queueType" column="queue_type"/>
+    </resultMap>
+
+    <select id="selectChampionPool" resultMap="ChampionPoolResultMap">
+        SELECT
+        c.id AS champion_id,
+        c.champion_name_cn,
+        c.damage_type,
+        c.is_enabled,
+        m.primary_lane,
+        m.secondary_lane,
+        m.source,
+        m.region,
+        m.tier,
+        m.queue_type
+        FROM champion c
+        JOIN champion_lane_mapping m
+        ON c.id = m.champion_id
+        WHERE
+        c.is_enabled = TRUE
+        AND m.source = 'OP.GG'
+        AND m.region = #{region}
+        AND m.tier = #{tier}
+        AND m.queue_type = #{queueType}
+        ORDER BY
+        m.primary_lane,
+        c.champion_name_cn
+    </select>
+
+</mapper>

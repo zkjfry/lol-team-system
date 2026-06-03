@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.lolteambackend.dao.AssignmentHistoryDao">
+
+    <select id="selectNextGameNo" resultType="long">
+        SELECT COALESCE(MAX(game_no), 0) + 1
+        FROM assignment_champion_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+    </select>
+
+    <select id="selectRecentChampionIds" resultType="long">
+        SELECT DISTINCT champion_id
+        FROM assignment_champion_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND game_no IN (
+        SELECT DISTINCT game_no
+        FROM assignment_champion_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        ORDER BY game_no DESC
+        LIMIT #{recentGameCount}
+        )
+    </select>
+
+    <insert id="insertHistoryBatch">
+        INSERT INTO assignment_champion_history (
+        assignment_group_id,
+        game_no,
+        champion_id,
+        champion_name,
+        created_at
+        )
+        VALUES
+        <foreach collection="champions" item="c" separator=",">
+            (
+            #{assignmentGroupId},
+            #{gameNo},
+            #{c.championId},
+            #{c.championName},
+            CURRENT_TIMESTAMP
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteOldHistory">
+        DELETE FROM assignment_champion_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        AND game_no NOT IN (
+        SELECT game_no
+        FROM (
+        SELECT DISTINCT game_no
+        FROM assignment_champion_history
+        WHERE assignment_group_id = #{assignmentGroupId}
+        ORDER BY game_no DESC
+        LIMIT #{keepGameCount}
+        ) recent_games
+        )
+    </delete>
+
+    <delete id="deleteExpiredHistory">
+        DELETE FROM assignment_champion_history
+        WHERE created_at &lt; CURRENT_TIMESTAMP - INTERVAL '1 day'
+    </delete>
+
+</mapper>
