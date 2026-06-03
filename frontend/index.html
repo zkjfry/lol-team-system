@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>LOL战术分队 | 后端数据库英雄池 · 全局唯一</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f4f7fc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .card {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 2.5rem;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(203, 213, 225, 0.4);
+        }
+
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .title-section h1 span {
+            background: #e9eff9;
+            color: #2563eb;
+            font-size: 0.9rem;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-weight: 500;
+        }
+
+        .team-name-controls {
+            display: flex;
+            gap: 1.5rem;
+            background: #f8fafc;
+            padding: 0.6rem 1.5rem;
+            border-radius: 60px;
+            border: 1px solid #dee6f0;
+        }
+
+        .team-name-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .team-name-item label {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .team-name-item input {
+            border: none;
+            background: white;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            width: 110px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .red-name {
+            color: #b91c1c;
+        }
+
+        .blue-name {
+            color: #1e4f8a;
+        }
+
+        .batch-import {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+
+        .batch-import textarea {
+            flex: 2;
+            padding: 0.7rem;
+            border-radius: 1rem;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+
+        .batch-import .btn-import {
+            background: #f1f5f9;
+            border: 1px solid #94a3b8;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .json-status {
+            font-size: 0.85rem;
+            color: #2d6a4f;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 1rem;
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .player-card {
+            background: #fafcff;
+            border: 1px solid #e0e7ef;
+            border-radius: 1.2rem;
+            padding: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px #dde2ea;
+        }
+
+        .player-index {
+            font-weight: 700;
+            color: #2563eb;
+            background: #e9f0fd;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.85rem;
+        }
+
+        .player-card input {
+            border: 1px solid #cbd5e1;
+            background: white;
+            padding: 0.4rem 0.6rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            width: 100px;
+            flex: 1;
+        }
+
+        .fixed-options {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .fixed-options label {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 30px;
+            background: #f1f5f9;
+            font-size: 1rem;
+            border: 1px solid #cbd5e1;
+            transition: all 0.1s;
+        }
+
+        .fixed-options input[type="checkbox"] {
+            display: none;
+        }
+
+        .fixed-options input[type="checkbox"]:checked+label.blue-label {
+            background: #dbeafe;
+            color: #1e4f8a;
+            border-color: #60a5fa;
+        }
+
+        .fixed-options input[type="checkbox"]:checked+label.red-label {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-color: #f87171;
+        }
+
+        .role-select {
+            width: 75px;
+            padding: 0.3rem;
+            border-radius: 2rem;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .info-rule {
+            background: #f0f4fe;
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #1e405e;
+        }
+
+        .button-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0 2rem;
+        }
+
+        .btn {
+            border: none;
+            background: white;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.7rem 1.8rem;
+            border-radius: 40px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 6px #d9e2ef;
+        }
+
+        .btn-primary {
+            background: #1d4ed8;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .result-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .result-section .team-card:first-child {
+            order: 2;
+        }
+
+        .result-section .team-card:last-child {
+            order: 1;
+        }
+
+        .team-card {
+            flex: 1 1 320px;
+            background: #ffffff;
+            border-radius: 1.8rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 20px -12px #99aec6;
+        }
+
+        .team-a .team-header {
+            color: #b91c1c;
+            border-bottom-color: #fecaca;
+        }
+
+        .team-b .team-header {
+            color: #1e4f8a;
+            border-bottom-color: #bfdbfe;
+        }
+
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 2px solid;
+        }
+
+        .team-header input {
+            font-size: 1rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            width: 110px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+        }
+
+        .team-header span {
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            margin-left: auto;
+        }
+
+        .team-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .team-list li {
+            background: #f8fafc;
+            padding: 0.5rem 0.8rem;
+            border-radius: 3rem;
+            border: 1px solid #d9e2ef;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .player-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1e293b;
+            border: 1px solid #cbd5e1;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .role-badge {
+            background: #eef2ff;
+            border-radius: 30px;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .champion-name {
+            background: #1e293b;
+            color: #facc15;
+            border-radius: 30px;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        .fixed-badge {
+            font-size: 0.65rem;
+            background: white;
+            border-radius: 30px;
+            padding: 0.1rem 0.5rem;
+            border: 1px solid #cbd5e1;
+        }
+
+        .placeholder {
+            justify-content: center;
+            color: #6f849b;
+            font-style: italic;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: #62748c;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1rem;
+        }
+
+        @media (max-width: 700px) {
+            .player-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .fixed-options {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="header">
+            <div class="title-section">
+                <h1>🏆 英雄联盟战术分队 <span>后端数据库英雄池 · 全局唯一</span></h1>
+            </div>
+            <div class="team-name-controls">
+                <div class="team-name-item"><label class="blue-name">🔵</label><input type="text" id="globalBlueName"
+                        value="蓝队"></div>
+                <div class="team-name-item"><label class="red-name">🔴</label><input type="text" id="globalRedName"
+                        value="红队"></div>
+            </div>
+        </div>
+
+        <div class="batch-import">
+            <textarea id="batchNames" rows="2" placeholder="每行一个名字（最多10个）&#10;例如：Faker&#10;Uzi&#10;TheShy"></textarea>
+            <button class="btn-import" id="importBtn">📋 导入并清空固定</button>
+        </div>
+
+        <div class="input-grid" id="playerGrid"></div>
+
+        <div class="info-rule">
+            ✅ <strong>英雄绝对唯一</strong>：全场10名队员英雄各不相同（无论分路是否相同）。<br>
+            ✅ <strong>分路约束</strong>：固定分路仅为偏好，同分路最多2人且自动分到不同队，保证每队5个不同分路。<br>
+            ✅ <strong>英雄池来源</strong>：基于韩服挑战者分段英雄映射（主/次分路），每个英雄只可使用一次。<br>
+            ✅ <strong>连续三把不重复</strong>：当前这一把会排除前两把用过的英雄，保证任意连续三把内英雄不重复。
+        </div>
+
+        <div class="button-panel">
+            <button class="btn btn-primary" id="randomGroupBtn">🎲 随机分组+全局英雄</button>
+            <button class="btn" id="clearHistoryBtn">🧹 重置本轮记录</button>
+            <button class="btn" id="resetBtn">🗑️ 重置所有</button>
+            <button class="btn" id="exampleBtn">✨ 示例+固定(Faker中单, Uzi ADC)</button>
+        </div>
+
+        <div class="result-section">
+            <div class="team-card team-a">
+                <div class="team-header">🔴 <input type="text" id="teamANameInput" value="红队"> <span>5人</span></div>
+                <ul class="team-list" id="teamA-list">
+                    <li class="placeholder">等待分组</li>
+                </ul>
+            </div>
+            <div class="team-card team-b">
+                <div class="team-header">🔵 <input type="text" id="teamBNameInput" value="蓝队"> <span>5人</span></div>
+                <ul class="team-list" id="teamB-list">
+                    <li class="placeholder">等待分组</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-note">
+            ⚡ 英雄头像使用Riot官方资源，全局英雄不重复分配。支持导入自定义JSON（格式: championMapping数组，含championName/primaryLane/secondaryLane）。
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            // 中英文映射（用于头像显示，扩展常见英雄）
+            const championNameToKey = {
+                // 你原来的映射保留
+
+                // 上路/常见
+                "暗裔剑魔": "Aatrox",
+                "九尾妖狐": "Ahri",
+                "离群之刺": "Akali",
+                "牛头酋长": "Alistar",
+                "殇之木乃伊": "Amumu",
+                "冰晶凤凰": "Anivia",
+                "黑暗之女": "Annie",
+                "残月之肃": "Aphelios",
+                "寒冰射手": "Ashe",
+                "铸星龙王": "AurelionSol",
+                "沙漠皇帝": "Azir",
+                "星界游神": "Bard",
+                "蒸汽机器人": "Blitzcrank",
+                "复仇焰魂": "Brand",
+                "弗雷尔卓德之心": "Braum",
+                "皮城女警": "Caitlyn",
+                "青钢影": "Camille",
+                "魔蛇之拥": "Cassiopeia",
+                "虚空恐惧": "Chogath",
+                "英勇投弹手": "Corki",
+                "诺克萨斯之手": "Darius",
+                "皎月女神": "Diana",
+                "荣耀行刑官": "Draven",
+                "祖安狂人": "DrMundo",
+                "时间刺客": "Ekko",
+                "蜘蛛女皇": "Elise",
+                "痛苦之拥": "Evelynn",
+                "探险家": "Ezreal",
+                "远古恐惧": "Fiddlesticks",
+                "无双剑姬": "Fiora",
+                "潮汐海灵": "Fizz",
+                "正义巨像": "Galio",
+                "海洋之灾": "Gangplank",
+                "德玛西亚之力": "Garen",
+                "迷失之牙": "Gnar",
+                "酒桶": "Gragas",
+                "法外狂徒": "Graves",
+                "灵罗娃娃": "Gwen",
+                "大发明家": "Heimerdinger",
+                "海兽祭司": "Illaoi",
+                "刀锋舞者": "Irelia",
+                "翠神": "Ivern",
+                "风暴之怒": "Janna",
+                "德玛西亚皇子": "JarvanIV",
+                "武器大师": "Jax",
+                "未来守护者": "Jayce",
+                "戏命师": "Jhin",
+                "暴走萝莉": "Jinx",
+                "虚空之女": "Kaisa",
+                "复仇之矛": "Kalista",
+                "天启者": "Karma",
+                "死亡颂唱者": "Karthus",
+                "虚空行者": "Kassadin",
+                "不祥之刃": "Katarina",
+                "正义天使": "Kayle",
+                "影流之镰": "Kayn",
+                "狂暴之心": "Kennen",
+                "虚空掠夺者": "Khazix",
+                "永猎双子": "Kindred",
+                "暴怒骑士": "Kled",
+                "深渊巨口": "KogMaw",
+                "诡术妖姬": "Leblanc",
+                "盲僧": "LeeSin",
+                "曙光女神": "Leona",
+                "冰霜女巫": "Lissandra",
+                "圣枪游侠": "Lucian",
+                "仙灵女巫": "Lulu",
+                "光辉女郎": "Lux",
+                "熔岩巨兽": "Malphite",
+                "虚空先知": "Malzahar",
+                "扭曲树精": "Maokai",
+                "无极剑圣": "MasterYi",
+                "赏金猎人": "MissFortune",
+                "铁铠冥魂": "Mordekaiser",
+                "堕落天使": "Morgana",
+                "唤潮鲛姬": "Nami",
+                "沙漠死神": "Nasus",
+                "深海泰坦": "Nautilus",
+                "狂野女猎手": "Nidalee",
+                "永恒梦魇": "Nocturne",
+                "雪原双子": "Nunu",
+                "圣锤之毅": "Poppy",
+                "血港鬼影": "Pyke",
+                "元素女皇": "Qiyana",
+                "德玛西亚之翼": "Quinn",
+                "幻翎": "Rakan",
+                "披甲龙龟": "Rammus",
+                "虚空遁地兽": "RekSai",
+                "荒漠屠夫": "Renekton",
+                "傲之追猎者": "Rengar",
+                "放逐之刃": "Riven",
+                "机械公敌": "Rumble",
+                "符文法师": "Ryze",
+                "北地之怒": "Sejuani",
+                "涤魂圣枪": "Senna",
+                "腕豪": "Sett",
+                "暮光之眼": "Shen",
+                "龙血武姬": "Shyvana",
+                "炼金术士": "Singed",
+                "亡灵战神": "Sion",
+                "战争女神": "Sivir",
+                "水晶先锋": "Skarner",
+                "琴瑟仙女": "Sona",
+                "众星之子": "Soraka",
+                "诺克萨斯统领": "Swain",
+                "暗黑元首": "Syndra",
+                "河流之王": "TahmKench",
+                "岩雀": "Taliyah",
+                "刀锋之影": "Talon",
+                "瓦洛兰之盾": "Taric",
+                "迅捷斥候": "Teemo",
+                "魂锁典狱长": "Thresh",
+                "麦林炮手": "Tristana",
+                "巨魔之王": "Trundle",
+                "蛮族之王": "Tryndamere",
+                "卡牌大师": "TwistedFate",
+                "瘟疫之源": "Twitch",
+                "兽灵行者": "Udyr",
+                "无畏战车": "Urgot",
+                "惩戒之箭": "Varus",
+                "暗夜猎手": "Vayne",
+                "邪恶小法师": "Veigar",
+                "皮城执法官": "Vi",
+                "破败之王": "Viego",
+                "机械先驱": "Viktor",
+                "猩红收割者": "Vladimir",
+                "不灭狂雷": "Volibear",
+                "齐天大圣": "MonkeyKing",
+                "逆羽": "Xayah",
+                "远古巫灵": "Xerath",
+                "赵信": "XinZhao",
+                "疾风剑豪": "Yasuo",
+                "封魔剑魂": "Yone",
+                "牧魂人": "Yorick",
+                "魔法猫咪": "Yuumi",
+                "影流之主": "Zed",
+                "祖安花火": "Zeri",
+                "爆破鬼才": "Ziggs",
+                "时光守护者": "Zilean",
+                "暮光星灵": "Zoe",
+                "荆棘之兴": "Zyra",
+
+                // 新英雄/近年英雄
+                "含羞蓓蕾": "Lillia",
+                "愁云使者": "Vex",
+                "炼金男爵": "Renata",
+                "不羁之悦": "Nilah",
+                "纳祖芒荣耀": "KSante",
+                "明烛": "Milio",
+                "百裂冥犬": "Naafiri",
+                "异画师": "Hwei",
+                "双界灵兔": "Aurora",
+                "生化魔人": "Zac",
+                "不屈之枪": "Pantheon",
+                "影哨": "Akshan",
+                "铁血狼母": "Ambessa",
+                "虚空女皇": "Belveth",
+                "狂厄蔷薇": "Briar",
+                "战争之影": "Hecarim",
+                "流光镜影": "Mel",
+                "万花通灵": "Neeko",
+                "狂战士": "Olaf",
+                "发条魔灵": "Orianna",
+                "山隐之焰": "Ornn",
+                "镕铁少女": "Rell",
+                "沙漠玫瑰": "Samira",
+                "星籁歌姬": "Seraphine",
+                "恶魔小丑": "Shaco",
+                "炽炎雏龙": "Smolder",
+                "解脱者": "Sylas",
+                "虚空之眼": "Velkoz",
+                "祖安怒兽": "Warwick",
+                "不破之誓": "Yunara",
+                "不落魔锋": "Zaahen",
+            };
+
+            function getChampionAvatarUrl(championName) {
+                const key = championNameToKey[championName];
+                if (key) {
+                    return `https://ddragon.leagueoflegends.com/cdn/16.11.1/img/champion/${key}.png`;
+                }
+                return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23334155'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='%23ffffff' font-size='12'%3E?%3C/text%3E%3C/svg%3E";
+            }
+
+            // DOM 元素
+            const playerGrid = document.getElementById('playerGrid');
+            const teamAList = document.getElementById('teamA-list');
+            const teamBList = document.getElementById('teamB-list');
+            const randomBtn = document.getElementById('randomGroupBtn');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const exampleBtn = document.getElementById('exampleBtn');
+            const importBtn = document.getElementById('importBtn');
+            const batchNames = document.getElementById('batchNames');
+            const globalRedName = document.getElementById('globalRedName');
+            const globalBlueName = document.getElementById('globalBlueName');
+            const teamANameInput = document.getElementById('teamANameInput');
+            const teamBNameInput = document.getElementById('teamBNameInput');
+
+            function syncTeamNames() {
+                globalRedName.addEventListener('input', () => teamANameInput.value = globalRedName.value);
+                teamANameInput.addEventListener('input', () => globalRedName.value = teamANameInput.value);
+                globalBlueName.addEventListener('input', () => teamBNameInput.value = globalBlueName.value);
+                teamBNameInput.addEventListener('input', () => globalBlueName.value = teamBNameInput.value);
+                teamANameInput.value = globalRedName.value;
+                teamBNameInput.value = globalBlueName.value;
+            }
+            syncTeamNames();
+
+            let nameInputs = [], fixedRedCBs = [], fixedBlueCBs = [], roleSelects = [];
+
+            function generatePlayerCards() {
+                let html = '';
+                for (let i = 1; i <= 10; i++) {
+                    html += `
+                    <div class="player-card">
+                        <span class="player-index">${i}</span>
+                        <input type="text" class="name-input" placeholder="召唤师${i}" autocomplete="off">
+                        <div class="fixed-options">
+                            <input type="checkbox" id="blue_${i}" class="fixed-blue">
+                            <label for="blue_${i}" class="blue-label" title="固定蓝队">🔵</label>
+                            <input type="checkbox" id="red_${i}" class="fixed-red">
+                            <label for="red_${i}" class="red-label" title="固定红队">🔴</label>
+                        </div>
+                        <select class="role-select">
+                            <option value="">无固定</option>
+                            <option value="top">TOP</option><option value="jug">JUG</option>
+                            <option value="mid">MID</option><option value="ad">ADC</option><option value="sup">SUP</option>
+                        </select>
+                    </div>
+                `;
+                }
+                playerGrid.innerHTML = html;
+                nameInputs = document.querySelectorAll('.name-input');
+                fixedBlueCBs = document.querySelectorAll('.fixed-blue');
+                fixedRedCBs = document.querySelectorAll('.fixed-red');
+                roleSelects = document.querySelectorAll('.role-select');
+            }
+            generatePlayerCards();
+
+            function setupExclusive() {
+                for (let i = 0; i < nameInputs.length; i++) {
+                    const red = fixedRedCBs[i], blue = fixedBlueCBs[i];
+                    if (!red || !blue) continue;
+                    red.addEventListener('change', function () { if (this.checked) blue.checked = false; setPlaceholderBoth(); });
+                    blue.addEventListener('change', function () { if (this.checked) red.checked = false; setPlaceholderBoth(); });
+                }
+            }
+
+            function setPlaceholderBoth() {
+                teamAList.innerHTML = '<li class="placeholder">⚔️ 等待分组</li>';
+                teamBList.innerHTML = '<li class="placeholder">⚔️ 等待分组</li>';
+            }
+
+            function attachChangeListeners() {
+                nameInputs.forEach(inp => inp.addEventListener('input', () => setPlaceholderBoth()));
+                fixedRedCBs.forEach(cb => cb.addEventListener('change', () => setPlaceholderBoth()));
+                fixedBlueCBs.forEach(cb => cb.addEventListener('change', () => setPlaceholderBoth()));
+                roleSelects.forEach(sel => sel.addEventListener('change', () => setPlaceholderBoth()));
+            }
+
+            function resetAll() {
+                nameInputs.forEach(inp => inp.value = '');
+                fixedRedCBs.forEach(cb => cb.checked = false);
+                fixedBlueCBs.forEach(cb => cb.checked = false);
+                roleSelects.forEach(sel => sel.value = '');
+                setPlaceholderBoth();
+                batchNames.value = '';
+                resetAssignmentSession(false);
+            }
+
+            function fillExample() {
+                resetAll();
+                const exampleNames = ['Faker', 'Uzi', 'TheShy', 'Canyon', 'Meiko', 'Bin', 'JackeyLove', 'Knight', 'Ming', 'Tian'];
+                nameInputs.forEach((inp, idx) => { if (idx < exampleNames.length) inp.value = exampleNames[idx]; });
+                if (roleSelects[0]) roleSelects[0].value = 'mid';
+                if (roleSelects[1]) roleSelects[1].value = 'ad';
+                setPlaceholderBoth();
+            }
+
+            function importFromBatch() {
+                const lines = batchNames.value.split(/\r?\n/).map(l => l.trim()).filter(l => l !== '');
+                const toFill = lines.slice(0, 10);
+                for (let i = 0; i < nameInputs.length; i++) nameInputs[i].value = i < toFill.length ? toFill[i] : '';
+                fixedRedCBs.forEach(cb => cb.checked = false);
+                fixedBlueCBs.forEach(cb => cb.checked = false);
+                roleSelects.forEach(sel => sel.value = '');
+                setPlaceholderBoth();
+                if (lines.length > 10) alert(`共 ${lines.length} 行，仅填充前10个。`);
+            }
+            // --------------------------------------------------------------
+            // 后端 API 配置
+            // 如果你的 Spring Boot 不是 8080 端口，改这里即可
+            const API_BASE_URL = "http://localhost:8080";
+
+            // 当前页面会话 ID：
+            // - 同一个浏览器标签页内，连续随机会共用同一个 ID，因此连续三把英雄不重复、位置概率权重会生效。
+            // - 关闭标签页后重新打开，会生成新 ID，因此第二天/重新打开时会从 20% 初始概率重新开始。
+            // - 点击“重置本轮记录”会手动生成新 ID，相当于清空本轮英雄历史和位置概率。
+            let ASSIGNMENT_GROUP_ID = getOrCreateAssignmentGroupId();
+
+            function getOrCreateAssignmentGroupId() {
+                let id = sessionStorage.getItem("assignmentGroupId");
+
+                if (!id) {
+                    id = "session-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+                    sessionStorage.setItem("assignmentGroupId", id);
+                }
+
+                return id;
+            }
+
+            function resetAssignmentSession(showAlert = true) {
+                sessionStorage.removeItem("assignmentGroupId");
+                ASSIGNMENT_GROUP_ID = getOrCreateAssignmentGroupId();
+
+                if (showAlert) {
+                    alert("已重置本轮记录：英雄历史和位置概率将从新会话重新开始。");
+                }
+            }
+
+            function normalizeTeamForBackend(index) {
+                if (fixedRedCBs[index]?.checked) return "RED";
+                if (fixedBlueCBs[index]?.checked) return "BLUE";
+                return null;
+            }
+
+            function normalizeLaneForBackend(value) {
+                const map = {
+                    "top": "TOP",
+                    "jug": "JUNGLE",
+                    "mid": "MID",
+                    "ad": "ADC",
+                    "sup": "SUPPORT"
+                };
+                return map[value] || null;
+            }
+
+            function getLaneDisplayName(lane) {
+                const map = {
+                    "TOP": "TOP",
+                    "JUNGLE": "JUG",
+                    "MID": "MID",
+                    "ADC": "ADC",
+                    "SUPPORT": "SUP"
+                };
+                return map[lane] || lane || "";
+            }
+
+            function collectPlayersForBackend() {
+                const players = [];
+                const seenNames = new Set();
+
+                for (let i = 0; i < nameInputs.length; i++) {
+                    const name = nameInputs[i].value.trim();
+
+                    if (name === "") {
+                        throw new Error(`第${i + 1}位召唤师名字不能为空`);
+                    }
+
+                    if (seenNames.has(name)) {
+                        throw new Error(`玩家名重复：${name}`);
+                    }
+
+                    seenNames.add(name);
+
+                    players.push({
+                        name: name,
+                        fixedTeam: normalizeTeamForBackend(i),
+                        fixedLane: normalizeLaneForBackend(roleSelects[i]?.value)
+                    });
+                }
+
+                if (players.length !== 10) {
+                    throw new Error("必须输入 10 个玩家");
+                }
+
+                return players;
+            }
+
+            function buildFixedBadgeMap(players) {
+                const map = new Map();
+
+                players.forEach(p => {
+                    const badges = [];
+
+                    if (p.fixedTeam === "RED") badges.push("🔒红固");
+                    if (p.fixedTeam === "BLUE") badges.push("🔒蓝固");
+                    if (p.fixedLane) badges.push(`🔒${getLaneDisplayName(p.fixedLane)}`);
+
+                    map.set(p.name, badges);
+                });
+
+                return map;
+            }
+
+            function renderBackendTeam(ul, teamData, fixedBadgeMap) {
+                ul.innerHTML = '';
+
+                teamData.forEach(p => {
+                    const li = document.createElement('li');
+
+                    const infoDiv = document.createElement('div');
+                    infoDiv.className = 'player-info';
+
+                    const options = Array.isArray(p.championOptions) && p.championOptions.length > 0
+                        ? p.championOptions
+                        : [{
+                            championName: p.championName,
+                            damageType: p.damageType
+                        }];
+
+                    const avatarWrap = document.createElement('span');
+                    avatarWrap.style.display = 'inline-flex';
+                    avatarWrap.style.gap = '4px';
+
+                    options.forEach(opt => {
+                        const avatar = document.createElement('img');
+                        avatar.className = 'player-avatar';
+                        avatar.src = getChampionAvatarUrl(opt.championName);
+                        avatar.alt = opt.championName;
+                        avatar.onerror = () => {
+                            avatar.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23334155'/%3E%3Ctext x='16' y='21' text-anchor='middle' fill='%23ffffff' font-size='12'%3E?%3C/text%3E%3C/svg%3E";
+                        };
+                        avatarWrap.appendChild(avatar);
+                    });
+
+                    infoDiv.appendChild(avatarWrap);
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = 'player-name';
+                    nameSpan.textContent = p.playerName;
+                    infoDiv.appendChild(nameSpan);
+
+                    const roleSpan = document.createElement('span');
+                    roleSpan.className = 'role-badge';
+                    roleSpan.textContent = getLaneDisplayName(p.lane);
+                    infoDiv.appendChild(roleSpan);
+
+                    options.forEach((opt, idx) => {
+                        const champSpan = document.createElement('span');
+                        champSpan.className = 'champion-name';
+
+                        const damageText = opt.damageType && opt.damageType !== "UNKNOWN"
+                            ? ` · ${opt.damageType}`
+                            : "";
+
+                        champSpan.textContent = `${idx + 1}. ${opt.championName}${damageText}`;
+                        infoDiv.appendChild(champSpan);
+                    });
+                    li.appendChild(infoDiv);
+
+                    const badges = fixedBadgeMap.get(p.playerName) || [];
+                    badges.forEach(text => {
+                        const b = document.createElement('span');
+                        b.className = 'fixed-badge';
+                        b.textContent = text;
+                        li.appendChild(b);
+                    });
+
+                    ul.appendChild(li);
+                });
+            }
+
+            // 核心分组算法：现在改成调用 Spring Boot 后端
+            async function performGroup() {
+                const oldButtonText = randomBtn.textContent;
+
+                try {
+                    const players = collectPlayersForBackend();
+                    const fixedBadgeMap = buildFixedBadgeMap(players);
+
+                    const request = {
+                        assignmentGroupId: ASSIGNMENT_GROUP_ID,
+                        region: "Korea",
+                        tier: "Emerald+",
+                        queue: "ranked",
+                        players: players
+                    };
+
+                    randomBtn.disabled = true;
+                    randomBtn.textContent = "⏳ 分配中...";
+
+                    const response = await fetch(`${API_BASE_URL}/api/assign`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(request)
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || `HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+
+                    renderBackendTeam(teamAList, result.redTeam || [], fixedBadgeMap);
+                    renderBackendTeam(teamBList, result.blueTeam || [], fixedBadgeMap);
+
+                } catch (err) {
+                    console.error(err);
+                    alert("分配失败：" + err.message);
+                } finally {
+                    randomBtn.disabled = false;
+                    randomBtn.textContent = oldButtonText;
+                }
+            }
+
+            setupExclusive();
+            attachChangeListeners();
+            randomBtn.addEventListener('click', performGroup);
+            clearHistoryBtn.addEventListener('click', () => {
+                resetAssignmentSession(true);
+                setPlaceholderBoth();
+            });
+            resetBtn.addEventListener('click', resetAll);
+            exampleBtn.addEventListener('click', fillExample);
+            importBtn.addEventListener('click', importFromBatch);
+            setPlaceholderBoth();
+        })();
+    </script>
+</body>
+
+</html>
