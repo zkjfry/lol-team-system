@@ -1,0 +1,40 @@
+name: Update OP.GG champion mappings
+
+on:
+  schedule:
+    # 每天新加坡时间 04:00 跑一次
+    # GitHub Actions 使用 UTC，新加坡 UTC+8，所以这里是前一天 20:00 UTC
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape-opgg:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: scraper
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m playwright install chromium
+
+      - name: Run OP.GG scraper and update database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          python scrape_opgg_champion.py
